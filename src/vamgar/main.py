@@ -1,9 +1,15 @@
-"""Vamgar API skeleton."""
+"""Vamgar API."""
 
 from fastapi import FastAPI
 
-from src.vamgar.engine import score_merchant
-from src.vamgar.schemas import CreditDecision, MerchantSalesSummary
+from src.vamgar.cashflow import analyze_cash_gaps
+from src.vamgar.engine import score_merchant, score_merchant_from_transactions
+from src.vamgar.schemas import (
+    CashGapAnalysis,
+    CreditDecision,
+    MerchantSalesSummary,
+    MerchantTransactionBatch,
+)
 
 app = FastAPI(title="Vamgar", description="AI Merchant Credit & Working Capital Engine")
 
@@ -15,4 +21,17 @@ def health() -> dict:
 
 @app.post("/score", response_model=CreditDecision)
 def score(summary: MerchantSalesSummary) -> CreditDecision:
+    """امتیازدهی از روی خلاصه فروش از‌قبل‌تجمیع‌شده (بدون تحلیل cash gap)."""
     return score_merchant(summary)
+
+
+@app.post("/score/transactions", response_model=CreditDecision)
+def score_from_transactions(batch: MerchantTransactionBatch) -> CreditDecision:
+    """امتیازدهی کامل از روی تراکنش‌های خام (کارت‌خوان/PSP/مارکت‌پلیس)."""
+    return score_merchant_from_transactions(batch.merchant_id, batch.transactions)
+
+
+@app.post("/cashflow/analyze", response_model=CashGapAnalysis)
+def cashflow_analyze(batch: MerchantTransactionBatch) -> CashGapAnalysis:
+    """فقط تحلیل cash gap را برمی‌گرداند (برای بازبینی/دیباگ)."""
+    return analyze_cash_gaps(batch.merchant_id, batch.transactions)

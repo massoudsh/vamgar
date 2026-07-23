@@ -1,13 +1,67 @@
 """Pydantic schemas for merchant credit scoring requests/responses."""
 
+from datetime import date, datetime
+from enum import Enum
+
 from pydantic import BaseModel, Field
 
 
-class MerchantSalesSummary(BaseModel):
-    """Aggregated sales signal for a merchant over a lookback period.
+class TransactionSource(str, Enum):
+    """منبع داده تراکنش."""
 
-    This is a simplified placeholder input. In a real implementation this
-    would be derived from raw POS/PSP/marketplace transaction data.
+    POS = "pos"
+    PSP = "psp"
+    MARKETPLACE = "marketplace"
+
+
+class Transaction(BaseModel):
+    """یک تراکنش نقدی خام مرچنت.
+
+    amount مثبت یعنی ورود پول (فروش/تسویه) و amount منفی یعنی خروج پول
+    (پرداخت به تأمین‌کننده، خرید موجودی و مانند آن).
+    """
+
+    merchant_id: str
+    timestamp: datetime
+    amount: float
+    source: TransactionSource
+
+
+class MerchantTransactionBatch(BaseModel):
+    """دسته‌ای از تراکنش‌های خام یک مرچنت برای تحلیل."""
+
+    merchant_id: str
+    transactions: list[Transaction] = Field(..., min_length=1)
+
+
+class CashGapEvent(BaseModel):
+    """یک دوره پیوسته که موجودی نقدی تجمعی مرچنت منفی بوده (کسری نقدینگی)."""
+
+    start_date: date
+    end_date: date
+    duration_days: int = Field(..., ge=1)
+    max_deficit: float = Field(..., ge=0, description="بیشترین عمق کسری در این دوره (قدرمطلق، تومان)")
+
+
+class CashGapAnalysis(BaseModel):
+    """خروجی تحلیل cash gap بر پایه جریان نقدی روزانه واقعی مرچنت."""
+
+    merchant_id: str
+    period_start: date
+    period_end: date
+    gap_events: list[CashGapEvent]
+    total_days_in_gap: int = Field(..., ge=0)
+    max_gap_depth: float = Field(..., ge=0, description="بدترین (بیشترین) عمق کسری در کل بازه")
+    avg_gap_depth: float = Field(..., ge=0, description="میانگین عمق کسری در دوره‌های گزارش‌شده")
+    gap_frequency_per_month: float = Field(..., ge=0, description="تعداد دوره‌های کسری به ازای هر ماه")
+
+
+class MerchantSalesSummary(BaseModel):
+    """سیگنال تجمیع‌شده فروش مرچنت در یک بازه.
+
+    این مدل می‌تواند دستی (برای فراخوان‌هایی که خودشان داده تجمیع‌شده
+    دارند) یا به‌صورت خودکار از تراکنش‌های خام توسط
+    ``vamgar.cashflow.build_sales_summary`` ساخته شود.
     """
 
     merchant_id: str
