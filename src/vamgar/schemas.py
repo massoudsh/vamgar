@@ -34,6 +34,14 @@ class MerchantTransactionBatch(BaseModel):
     transactions: list[Transaction] = Field(..., min_length=1)
 
 
+class CSVImportRequest(BaseModel):
+    """ورودی import تراکنش خام از export دوره‌ای CSV یک منبع (کارت‌خوان/PSP/مارکت‌پلیس)."""
+
+    merchant_id: str
+    source: TransactionSource
+    csv_text: str = Field(..., min_length=1, description="محتوای فایل CSV با هدر (ستون تاریخ + مبلغ)")
+
+
 class CashGapEvent(BaseModel):
     """یک دوره پیوسته که موجودی نقدی تجمعی مرچنت منفی بوده (کسری نقدینگی)."""
 
