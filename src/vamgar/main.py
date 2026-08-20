@@ -1,16 +1,25 @@
 """Vamgar API."""
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 
+from src.vamgar import storage
+from src.vamgar.auth import require_api_key
 from src.vamgar.cashflow import analyze_cash_gaps
 from src.vamgar.engine import score_merchant, score_merchant_from_transactions
-from src.vamgar.importers import CSVImportError, parse_csv_transactions
+from src.vamgar.importers import (
+    CSVImportError,
+    XLSXImportError,
+    parse_csv_transactions,
+    parse_xlsx_transactions,
+)
 from src.vamgar.schemas import (
     CashGapAnalysis,
     CreditDecision,
+    CreditDecisionRecord,
     CSVImportRequest,
     MerchantSalesSummary,
     MerchantTransactionBatch,
+    TransactionSource,
 )
 
 app = FastAPI(title="Vamgar", description="AI Merchant Credit & Working Capital Engine")
@@ -21,29 +30,68 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-@app.post("/score", response_model=CreditDecision)
+@app.post("/score", response_model=CreditDecision, dependencies=[Depends(require_api_key)])
 def score(summary: MerchantSalesSummary) -> CreditDecision:
     """امتیازدهی از روی خلاصه فروش از‌قبل‌تجمیع‌شده (بدون تحلیل cash gap)."""
-    return score_merchant(summary)
+    decision = score_merchant(summary)
+    storage.save_decision(decision)
+    return decision
 
 
-@app.post("/score/transactions", response_model=CreditDecision)
+@app.post(
+    "/score/transactions", response_model=CreditDecision, dependencies=[Depends(require_api_key)]
+)
 def score_from_transactions(batch: MerchantTransactionBatch) -> CreditDecision:
     """امتیازدهی کامل از روی تراکنش‌های خام (کارت‌خوان/PSP/مارکت‌پلیس)."""
-    return score_merchant_from_transactions(batch.merchant_id, batch.transactions)
+    storage.save_transactions(batch.transactions)
+    decision = score_merchant_from_transactions(batch.merchant_id, batch.transactions)
+    storage.save_decision(decision)
+    return decision
 
 
-@app.post("/cashflow/analyze", response_model=CashGapAnalysis)
+@app.post("/cashflow/analyze", response_model=CashGapAnalysis, dependencies=[Depends(require_api_key)])
 def cashflow_analyze(batch: MerchantTransactionBatch) -> CashGapAnalysis:
     """فقط تحلیل cash gap را برمی‌گرداند (برای بازبینی/دیباگ)."""
+    storage.save_transactions(batch.transactions)
     return analyze_cash_gaps(batch.merchant_id, batch.transactions)
 
 
-@app.post("/score/csv", response_model=CreditDecision)
+@app.post("/score/csv", response_model=CreditDecision, dependencies=[Depends(require_api_key)])
 def score_from_csv(payload: CSVImportRequest) -> CreditDecision:
     """امتیازدهی کامل از روی export دوره‌ای CSV یک منبع (کارت‌خوان/PSP/مارکت‌پلیس)."""
     try:
         transactions = parse_csv_transactions(payload.csv_text, payload.merchant_id, payload.source)
     except CSVImportError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return score_merchant_from_transactions(payload.merchant_id, transactions)
+    storage.save_transactions(transactions)
+    decision = score_merchant_from_transactions(payload.merchant_id, transactions)
+    storage.save_decision(decision)
+    return decision
+
+
+@app.post("/score/xlsx", response_model=CreditDecision, dependencies=[Depends(require_api_key)])
+async def score_from_xlsx(
+    merchant_id: str = Form(...),
+    source: TransactionSource = Form(...),
+    file: UploadFile = File(...),
+) -> CreditDecision:
+    """امتیازدهی کامل از روی export دوره‌ای xlsx یک منبع (کارت‌خوان/PSP/مارکت‌پلیس)."""
+    content = await file.read()
+    try:
+        transactions = parse_xlsx_transactions(content, merchant_id, source)
+    except XLSXImportError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    storage.save_transactions(transactions)
+    decision = score_merchant_from_transactions(merchant_id, transactions)
+    storage.save_decision(decision)
+    return decision
+
+
+@app.get(
+    "/merchants/{merchant_id}/history",
+    response_model=list[CreditDecisionRecord],
+    dependencies=[Depends(require_api_key)],
+)
+def merchant_history(merchant_id: str, limit: int = 50) -> list[dict]:
+    """تاریخچه تصمیم‌های اعتباری ثبت‌شده یک مرچنت (جدیدترین اول)."""
+    return storage.get_decision_history(merchant_id, limit)

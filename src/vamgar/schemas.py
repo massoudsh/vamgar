@@ -87,3 +87,9 @@ class CreditDecision(BaseModel):
     risk_score: float = Field(..., ge=0, le=1, description="نمره ریسک؛ کمتر یعنی ریسک پایین‌تر")
     recommended_credit_limit: float = Field(..., ge=0, description="سقف اعتبار پیشنهادی (تومان)")
     repayment_model: str = Field(..., description="'fixed' یا 'revenue_share'")
+
+
+class CreditDecisionRecord(CreditDecision):
+    """یک تصمیم اعتباری ثبت‌شده در تاریخچه، به‌همراه زمان ثبت (از ``storage``)."""
+
+    created_at: datetime
