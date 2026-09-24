@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10251f" />
+    <title>وام‌گر | داشبورد اعتبار</title>
+    <link rel="stylesheet" href="/app/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="ناوبری اصلی">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">و</div>
+          <div><strong>وام‌گر</strong><span>تصمیم بهتر برای اعتبار</span></div>
+        </div>
+        <nav class="nav-list">
+          <button class="nav-item active" data-view="overview"><span class="nav-icon">⌂</span>نمای کلی</button>
+          <button class="nav-item" data-view="analysis"><span class="nav-icon">⌁</span>تحلیل نقدینگی</button>
+          <button class="nav-item" data-view="import"><span class="nav-icon">↥</span>ورود داده</button>
+          <button class="nav-item" data-view="history"><span class="nav-icon">◷</span>تاریخچه تصمیم‌ها</button>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="status-dot"><i></i><span>سرویس فعال است</span></div>
+          <button class="help-link" type="button">راهنمای استفاده <span>↗</span></button>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="mobile-brand"><div class="brand-mark">و</div><strong>وام‌گر</strong></div>
+          <div class="topbar-actions">
+            <span class="date-label">امروز، ۲۴ شهریور ۱۴۰۵</span>
+            <button class="icon-button" type="button" aria-label="اعلان‌ها">♧<b></b></button>
+            <div class="avatar" aria-label="پروفایل مدیر">م</div>
+          </div>
+        </header>
+
+        <div class="page-content">
+          <section class="page-heading">
+            <div><p class="eyebrow">مرکز تصمیم‌گیری اعتباری</p><h1>صبح بخیر، مدیر</h1><p class="muted">تصویر امروز کسب‌وکارهای تحت پوشش را یک‌جا ببینید.</p></div>
+            <button class="primary-button" data-view="import" type="button"><span>＋</span> ارزیابی جدید</button>
+          </section>
+
+          <section class="metrics-grid" aria-label="شاخص‌های کلیدی">
+            <article class="metric-card"><div class="metric-head"><span>تصمیم‌های این ماه</span><span class="metric-icon mint">↗</span></div><strong>۱۲۸</strong><span class="trend positive">↑ ۱۸٪ <em>نسبت به ماه قبل</em></span></article>
+            <article class="metric-card"><div class="metric-head"><span>سقف اعتبار پیشنهادی</span><span class="metric-icon gold">▣</span></div><strong>۴.۸ <small>میلیارد</small></strong><span class="trend positive">↑ ۹٪ <em>نسبت به ماه قبل</em></span></article>
+            <article class="metric-card"><div class="metric-head"><span>میانگین نمره ریسک</span><span class="metric-icon blue">◌</span></div><strong>۰.۲۴</strong><span class="trend neutral">— <em>بدون تغییر</em></span></article>
+            <article class="metric-card"><div class="metric-head"><span>مرچنت‌های فعال</span><span class="metric-icon coral">♧</span></div><strong>۸۶</strong><span class="trend positive">↑ ۶٪ <em>در ۳۰ روز گذشته</em></span></article>
+          </section>
+
+          <section class="content-grid">
+            <article class="panel decision-panel">
+              <div class="panel-heading"><div><span class="section-kicker">آخرین ارزیابی</span><h2>تصمیم اعتباری مرچنت</h2></div><span class="badge success">کم‌ریسک</span></div>
+              <div class="decision-merchant"><div class="merchant-avatar">ف</div><div><strong id="merchant-name">فروشگاه فرتاک</strong><span id="merchant-id">merchant-1042</span></div><span class="decision-time">۲ دقیقه پیش</span></div>
+              <div class="decision-summary"><div class="score-ring"><div><strong id="risk-score">۰.۲۱</strong><span>نمره ریسک</span></div></div><div class="recommendation"><span>سقف اعتبار پیشنهادی</span><strong id="credit-limit">۳۵۰ میلیون تومان</strong><small>مدل بازپرداخت: <b id="repayment-model">درصدی از فروش</b></small></div></div>
+              <div class="insight"><span class="insight-icon">✦</span><p><strong>تصمیم قابل اتکا است.</strong> جریان فروش پایدار است و در ۹۰ روز گذشته فقط یک دوره کسری کوتاه ثبت شده.</p></div>
+              <button class="outline-button full-width" data-view="analysis" type="button">مشاهده گزارش کامل <span>←</span></button>
+            </article>
+
+            <article class="panel chart-panel">
+              <div class="panel-heading"><div><span class="section-kicker">روند درآمد</span><h2>فروش و نقدینگی</h2></div><select aria-label="بازه زمانی"><option>۶ ماه اخیر</option><option>۳ ماه اخیر</option></select></div>
+              <div class="legend"><span><i class="legend-dot revenue"></i>فروش ماهانه</span><span><i class="legend-dot cash"></i>جریان نقدی</span></div>
+              <div class="chart" aria-label="نمودار روند فروش و جریان نقدی"><div class="y-labels"><span>۴۰۰م</span><span>۳۰۰م</span><span>۲۰۰م</span><span>۱۰۰م</span><span>۰</span></div><div class="chart-area"><div class="grid-lines"><i></i><i></i><i></i><i></i><i></i></div><svg viewBox="0 0 600 220" preserveAspectRatio="none" role="img" aria-label="روند صعودی فروش"><path class="area-fill" d="M0,174 C45,165 56,128 105,142 S160,115 205,130 S260,94 306,112 S365,72 410,91 S470,50 510,67 S568,24 600,34 L600,220 L0,220Z"/><path class="line cash-line" d="M0,174 C45,165 56,128 105,142 S160,115 205,130 S260,94 306,112 S365,72 410,91 S470,50 510,67 S568,24 600,34"/><path class="line revenue-line" d="M0,187 C45,176 62,160 105,169 S165,137 205,151 S263,118 306,138 S364,101 410,119 S467,79 510,96 S570,55 600,70"/></svg><div class="x-labels"><span>فروردین</span><span>اردیبهشت</span><span>خرداد</span><span>تیر</span><span>مرداد</span><span>شهریور</span></div></div></div>
+            </article>
+          </section>
+
+          <section class="lower-grid">
+            <article class="panel gaps-panel"><div class="panel-heading"><div><span class="section-kicker">هشدار هوشمند</span><h2>کسری نقدینگی</h2></div><button class="text-button" data-view="analysis" type="button">مشاهده همه ←</button></div><div class="gap-content"><div class="gap-visual"><div class="gap-number">۳</div><span>دوره در ۹۰ روز گذشته</span></div><div class="gap-details"><div><span>بیشترین عمق کسری</span><strong>۴۲ میلیون تومان</strong></div><div><span>میانگین مدت</span><strong>۲.۶ روز</strong></div><div><span>آخرین دوره</span><strong>۱۲ روز پیش</strong></div></div></div></article>
+            <article class="panel sources-panel"><div class="panel-heading"><div><span class="section-kicker">داده‌های متصل</span><h2>منابع تراکنش</h2></div><button class="text-button" data-view="import" type="button">مدیریت ←</button></div><ul class="source-list"><li><span class="source-logo pos">پ</span><div><strong>کارت‌خوان پارس</strong><span>آخرین همگام‌سازی: امروز، ۰۸:۴۵</span></div><span class="connected">متصل</span></li><li><span class="source-logo psp">ش</span><div><strong>تسویه شاپرک</strong><span>آخرین همگام‌سازی: دیروز، ۱۶:۲۰</span></div><span class="connected">متصل</span></li></ul></article>
+          </section>
+
+          <section class="api-notice"><span class="notice-icon">⌘</span><div><strong>داده‌های شما امن هستند</strong><p>تمام اطلاعات با API داخلی و دسترسی کنترل‌شده پردازش می‌شود.</p></div><button class="text-button" type="button">جزئیات امنیت ←</button></section>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="import-modal" hidden><div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close" type="button" aria-label="بستن">×</button><span class="section-kicker">ارزیابی جدید</span><h2 id="modal-title">مرچنت را ارزیابی کنید</h2><p class="muted">تراکنش‌های خام را ارسال کنید تا تصمیم اعتباری ساخته شود.</p><form id="score-form"><label>شناسه مرچنت<input name="merchant_id" value="merchant-1042" required /></label><label>کلید API <input name="api_key" type="password" placeholder="در صورت فعال بودن احراز هویت" /></label><label>داده تراکنش <textarea name="transactions" rows="5">[{"timestamp":"2026-09-20T10:00:00","amount":12000000,"source":"pos"},{"timestamp":"2026-09-21T10:00:00","amount":15500000,"source":"pos"}]</textarea></label><div class="form-actions"><button class="outline-button modal-cancel" type="button">انصراف</button><button class="primary-button" type="submit">تحلیل و صدور تصمیم</button></div><p class="form-status" aria-live="polite"></p></form></div></div>
+    <script src="/app/app.js"></script>
+  </body>
+</html>

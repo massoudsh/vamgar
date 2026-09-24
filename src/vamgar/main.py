@@ -1,6 +1,9 @@
-"""Vamgar API."""
+"""Vamgar API and dashboard."""
+
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.staticfiles import StaticFiles
 
 from src.vamgar import storage
 from src.vamgar.auth import require_api_key
@@ -95,3 +98,6 @@ async def score_from_xlsx(
 def merchant_history(merchant_id: str, limit: int = 50) -> list[dict]:
     """تاریخچه تصمیم‌های اعتباری ثبت‌شده یک مرچنت (جدیدترین اول)."""
     return storage.get_decision_history(merchant_id, limit)
+
+
+app.mount("/app", StaticFiles(directory=Path(__file__).resolve().parents[2] / "frontend", html=True), name="dashboard")
