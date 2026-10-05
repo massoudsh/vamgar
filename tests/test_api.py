@@ -109,3 +109,25 @@ def test_merchant_history_empty_for_unknown_merchant():
 
     assert response.status_code == 200
     assert response.json() == []
+
+
+def test_dashboard_is_served_as_rtl_persian_page():
+    response = client.get("/app/")
+    assert response.status_code == 200
+    assert 'lang="fa"' in response.text and 'dir="rtl"' in response.text
+    assert client.get("/app/app.js").status_code == 200
+    assert client.get("/app/styles.css").status_code == 200
+
+
+def test_dashboard_analysis_payload_returns_gap_events():
+    transactions = [
+        {"merchant_id": "m-ui", "timestamp": "2026-09-01T10:00:00", "amount": 8000000, "source": "pos"},
+        {"merchant_id": "m-ui", "timestamp": "2026-09-03T10:00:00", "amount": -14000000, "source": "psp"},
+        {"merchant_id": "m-ui", "timestamp": "2026-09-07T10:00:00", "amount": 9000000, "source": "pos"},
+        {"merchant_id": "m-ui", "timestamp": "2026-09-12T10:00:00", "amount": 12000000, "source": "pos"},
+    ]
+    response = client.post("/cashflow/analyze", json={"merchant_id": "m-ui", "transactions": transactions})
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["gap_events"]) >= 1
+    assert body["max_gap_depth"] > 0

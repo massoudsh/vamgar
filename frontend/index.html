@@ -42,6 +42,7 @@
             <button class="primary-button" data-view="import" type="button"><span>＋</span> ارزیابی جدید</button>
           </section>
 
+          <div id="view-overview" class="view">
           <section class="metrics-grid" aria-label="شاخص‌های کلیدی">
             <article class="metric-card"><div class="metric-head"><span>تصمیم‌های این ماه</span><span class="metric-icon mint">↗</span></div><strong>۱۲۸</strong><span class="trend positive">↑ ۱۸٪ <em>نسبت به ماه قبل</em></span></article>
             <article class="metric-card"><div class="metric-head"><span>سقف اعتبار پیشنهادی</span><span class="metric-icon gold">▣</span></div><strong>۴.۸ <small>میلیارد</small></strong><span class="trend positive">↑ ۹٪ <em>نسبت به ماه قبل</em></span></article>
@@ -71,6 +72,47 @@
           </section>
 
           <section class="api-notice"><span class="notice-icon">⌘</span><div><strong>داده‌های شما امن هستند</strong><p>تمام اطلاعات با API داخلی و دسترسی کنترل‌شده پردازش می‌شود.</p></div><button class="text-button" type="button">جزئیات امنیت ←</button></section>
+          </div>
+
+          <div id="view-analysis" class="view" hidden>
+            <form class="panel query-form" id="analysis-form">
+              <div class="panel-heading"><div><span class="section-kicker">تحلیل cash gap</span><h2>جریان نقدی مرچنت</h2></div></div>
+              <div class="form-row">
+                <label>شناسه مرچنت<input name="merchant_id" value="merchant-1042" required /></label>
+                <label>کلید API<input name="api_key" type="password" placeholder="در صورت فعال بودن احراز هویت" autocomplete="off" /></label>
+              </div>
+              <label>تراکنش‌ها (JSON؛ مبلغ مثبت = ورود پول، منفی = خروج)<textarea name="transactions" rows="5">[{"timestamp":"2026-09-01T10:00:00","amount":8000000,"source":"pos"},{"timestamp":"2026-09-03T10:00:00","amount":-14000000,"source":"psp"},{"timestamp":"2026-09-07T10:00:00","amount":9000000,"source":"pos"},{"timestamp":"2026-09-12T10:00:00","amount":12000000,"source":"pos"}]</textarea></label>
+              <div class="form-actions"><button class="primary-button" type="submit">تحلیل نقدینگی</button><span class="form-status" aria-live="polite"></span></div>
+            </form>
+            <div id="analysis-result" hidden>
+              <section class="metrics-grid">
+                <article class="metric-card"><div class="metric-head"><span>تعداد دوره‌های کسری</span><span class="metric-icon coral">!</span></div><strong id="an-events">—</strong></article>
+                <article class="metric-card"><div class="metric-head"><span>روزهای در کسری</span><span class="metric-icon gold">◷</span></div><strong id="an-days">—</strong></article>
+                <article class="metric-card"><div class="metric-head"><span>بیشترین عمق کسری</span><span class="metric-icon blue">▼</span></div><strong id="an-max">—</strong></article>
+                <article class="metric-card"><div class="metric-head"><span>فراوانی در ماه</span><span class="metric-icon mint">↻</span></div><strong id="an-freq">—</strong></article>
+              </section>
+              <article class="panel table-panel">
+                <div class="panel-heading"><div><span class="section-kicker">جزئیات</span><h2>دوره‌های کسری نقدینگی</h2></div></div>
+                <div class="table-wrap"><table><thead><tr><th>شروع</th><th>پایان</th><th>مدت</th><th>عمق کسری</th></tr></thead><tbody id="an-rows"></tbody></table></div>
+                <p class="empty-state" id="an-empty" hidden>در این بازه هیچ دوره کسری نقدینگی ثبت نشد.</p>
+              </article>
+            </div>
+          </div>
+
+          <div id="view-history" class="view" hidden>
+            <form class="panel query-form" id="history-form">
+              <div class="panel-heading"><div><span class="section-kicker">آرشیو</span><h2>تاریخچه تصمیم‌های اعتباری</h2></div></div>
+              <div class="form-row">
+                <label>شناسه مرچنت<input name="merchant_id" value="merchant-1042" required /></label>
+                <label>کلید API<input name="api_key" type="password" placeholder="در صورت فعال بودن احراز هویت" autocomplete="off" /></label>
+              </div>
+              <div class="form-actions"><button class="primary-button" type="submit">نمایش تاریخچه</button><span class="form-status" aria-live="polite"></span></div>
+            </form>
+            <article class="panel table-panel" id="history-result" hidden>
+              <div class="table-wrap"><table><thead><tr><th>زمان ثبت</th><th>نمره ریسک</th><th>سقف اعتبار</th><th>مدل بازپرداخت</th></tr></thead><tbody id="hist-rows"></tbody></table></div>
+              <p class="empty-state" id="hist-empty" hidden>برای این مرچنت هنوز تصمیمی ثبت نشده است.</p>
+            </article>
+          </div>
         </div>
       </main>
     </div>
