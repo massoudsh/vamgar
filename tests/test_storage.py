@@ -26,13 +26,17 @@ def test_decision_history_returns_newest_first():
         merchant_id="m1", risk_score=0.5, recommended_credit_limit=500, repayment_model="revenue_share"
     )
 
-    storage.save_decision(older)
-    storage.save_decision(newer)
+    storage.save_decision(older, source_endpoint="/score", input_payload={"v": 1})
+    storage.save_decision(newer, source_endpoint="/score/csv", input_payload={"v": 2})
 
     history = storage.get_decision_history("m1")
 
     assert len(history) == 2
     assert history[0]["repayment_model"] == "revenue_share"
+    assert history[0]["source_endpoint"] == "/score/csv"
+    assert history[0]["engine_version"] == storage.ENGINE_VERSION
+    assert history[0]["input_hash"] == storage.hash_input({"v": 2})
+    assert history[0]["request_id"]
     assert history[1]["repayment_model"] == "fixed"
 
 
