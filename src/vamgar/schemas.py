@@ -90,6 +90,10 @@ class CreditDecision(BaseModel):
 
 
 class CreditDecisionRecord(CreditDecision):
-    """یک تصمیم اعتباری ثبت‌شده در تاریخچه، به‌همراه زمان ثبت (از ``storage``)."""
+    """یک تصمیم اعتباری ثبت‌شده در تاریخچه، به‌همراه زمان ثبت و متادیتای audit."""
 
     created_at: datetime
+    request_id: str | None = None
+    source_endpoint: str | None = None
+    input_hash: str | None = None
+    engine_version: str | None = None

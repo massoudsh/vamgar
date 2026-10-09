@@ -1,5 +1,6 @@
 """Vamgar API and dashboard."""
 
+import hashlib
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
@@ -37,7 +38,11 @@ def health() -> dict:
 def score(summary: MerchantSalesSummary) -> CreditDecision:
     """امتیازدهی از روی خلاصه فروش از‌قبل‌تجمیع‌شده (بدون تحلیل cash gap)."""
     decision = score_merchant(summary)
-    storage.save_decision(decision)
+    storage.save_decision(
+        decision,
+        source_endpoint="/score",
+        input_payload=summary.model_dump(mode="json"),
+    )
     return decision
 
 
@@ -48,7 +53,15 @@ def score_from_transactions(batch: MerchantTransactionBatch) -> CreditDecision:
     """امتیازدهی کامل از روی تراکنش‌های خام (کارت‌خوان/PSP/مارکت‌پلیس)."""
     storage.save_transactions(batch.transactions)
     decision = score_merchant_from_transactions(batch.merchant_id, batch.transactions)
-    storage.save_decision(decision)
+    storage.save_decision(
+        decision,
+        source_endpoint="/score/transactions",
+        input_payload={
+            "merchant_id": batch.merchant_id,
+            "transaction_count": len(batch.transactions),
+            "amount_sum": round(sum(tx.amount for tx in batch.transactions), 2),
+        },
+    )
     return decision
 
 
@@ -68,7 +81,16 @@ def score_from_csv(payload: CSVImportRequest) -> CreditDecision:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     storage.save_transactions(transactions)
     decision = score_merchant_from_transactions(payload.merchant_id, transactions)
-    storage.save_decision(decision)
+    storage.save_decision(
+        decision,
+        source_endpoint="/score/csv",
+        input_payload={
+            "merchant_id": payload.merchant_id,
+            "source": payload.source.value,
+            "csv_sha256": storage.hash_input(payload.csv_text),
+            "transaction_count": len(transactions),
+        },
+    )
     return decision
 
 
@@ -86,7 +108,16 @@ async def score_from_xlsx(
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     storage.save_transactions(transactions)
     decision = score_merchant_from_transactions(merchant_id, transactions)
-    storage.save_decision(decision)
+    storage.save_decision(
+        decision,
+        source_endpoint="/score/xlsx",
+        input_payload={
+            "merchant_id": merchant_id,
+            "source": source.value,
+            "file_sha256": hashlib.sha256(content).hexdigest(),
+            "transaction_count": len(transactions),
+        },
+    )
     return decision
 
 
