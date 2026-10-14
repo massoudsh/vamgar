@@ -131,3 +131,24 @@ def test_dashboard_analysis_payload_returns_gap_events():
     body = response.json()
     assert len(body["gap_events"]) >= 1
     assert body["max_gap_depth"] > 0
+
+
+def test_aggregate_offers_returns_ranked_provider_matches():
+    transactions = [
+        {"merchant_id": "m-aggregate", "timestamp": "2026-09-01T10:00:00", "amount": 12000000, "source": "pos"},
+        {"merchant_id": "m-aggregate", "timestamp": "2026-09-02T10:00:00", "amount": 15000000, "source": "marketplace"},
+        {"merchant_id": "m-aggregate", "timestamp": "2026-09-03T10:00:00", "amount": -4000000, "source": "psp"},
+    ]
+    response = client.post(
+        "/aggregate/offers",
+        json={"merchant_id": "m-aggregate", "transactions": transactions},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["decision"]["merchant_id"] == "m-aggregate"
+    assert [offer["provider_id"] for offer in body["offers"]] == [
+        offer["provider_id"] for offer in sorted(
+            body["offers"], key=lambda offer: (offer["eligible"], offer["fit_score"]), reverse=True
+        )
+    ]
+    assert any(offer["eligible"] for offer in body["offers"])

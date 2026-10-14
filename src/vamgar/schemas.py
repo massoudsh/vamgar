@@ -89,6 +89,25 @@ class CreditDecision(BaseModel):
     repayment_model: str = Field(..., description="'fixed' یا 'revenue_share'")
 
 
+class ProviderOffer(BaseModel):
+    """نتیجه تطبیق تصمیم اعتباری با یک ارائه‌دهنده اعتبار."""
+
+    provider_id: str
+    provider_name: str
+    eligible: bool
+    offered_credit_limit: float = Field(..., ge=0)
+    repayment_model: str | None = None
+    fit_score: float = Field(..., ge=0, le=1)
+    reason: str
+
+
+class AggregatedCreditResponse(BaseModel):
+    """تصمیم پایه و پیشنهادهای رتبه‌بندی‌شده ارائه‌دهندگان اعتبار."""
+
+    decision: CreditDecision
+    offers: list[ProviderOffer]
+
+
 class CreditDecisionRecord(CreditDecision):
     """یک تصمیم اعتباری ثبت‌شده در تاریخچه، به‌همراه زمان ثبت و متادیتای audit."""
 

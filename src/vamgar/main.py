@@ -7,6 +7,7 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.staticfiles import StaticFiles
 
 from src.vamgar import storage
+from src.vamgar.aggregator import aggregate_offers
 from src.vamgar.auth import require_api_key
 from src.vamgar.cashflow import analyze_cash_gaps
 from src.vamgar.engine import score_merchant, score_merchant_from_transactions
@@ -23,6 +24,7 @@ from src.vamgar.schemas import (
     CSVImportRequest,
     MerchantSalesSummary,
     MerchantTransactionBatch,
+    AggregatedCreditResponse,
     TransactionSource,
 )
 
@@ -63,6 +65,23 @@ def score_from_transactions(batch: MerchantTransactionBatch) -> CreditDecision:
         },
     )
     return decision
+
+
+@app.post("/aggregate/offers", response_model=AggregatedCreditResponse, dependencies=[Depends(require_api_key)])
+def aggregate_credit_offers(batch: MerchantTransactionBatch) -> AggregatedCreditResponse:
+    """ارزیابی مرچنت و رتبه‌بندی پیشنهادهای کاتالوگ ارائه‌دهندگان اعتبار."""
+    storage.save_transactions(batch.transactions)
+    decision, offers = aggregate_offers(batch.merchant_id, batch.transactions)
+    storage.save_decision(
+        decision,
+        source_endpoint="/aggregate/offers",
+        input_payload={
+            "merchant_id": batch.merchant_id,
+            "transaction_count": len(batch.transactions),
+            "amount_sum": round(sum(tx.amount for tx in batch.transactions), 2),
+        },
+    )
+    return AggregatedCreditResponse(decision=decision, offers=offers)
 
 
 @app.post("/cashflow/analyze", response_model=CashGapAnalysis, dependencies=[Depends(require_api_key)])

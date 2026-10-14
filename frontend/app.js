@@ -144,13 +144,27 @@ $('#score-form').addEventListener('submit', async event => {
   try {
     const headers = { 'Content-Type': 'application/json' };
     if (form.get('api_key')) headers['X-API-Key'] = form.get('api_key');
-    const response = await fetch('/score/transactions', { method: 'POST', headers, body: JSON.stringify({ merchant_id: form.get('merchant_id'), transactions: transactions.map(item => ({ ...item, merchant_id: form.get('merchant_id') })) }) });
+    const response = await fetch('/aggregate/offers', { method: 'POST', headers, body: JSON.stringify({ merchant_id: form.get('merchant_id'), transactions: transactions.map(item => ({ ...item, merchant_id: form.get('merchant_id') })) }) });
     if (!response.ok) throw new Error((await response.json()).detail || 'صدور تصمیم انجام نشد.');
-    const decision = await response.json();
+    const payload = await response.json();
+    const decision = payload.decision;
     $('#merchant-id').textContent = decision.merchant_id;
     $('#risk-score').textContent = persianDigits(Number(decision.risk_score).toFixed(2));
     $('#credit-limit').textContent = formatToman(decision.recommended_credit_limit);
     $('#repayment-model').textContent = decision.repayment_model === 'fixed' ? 'اقساط ثابت' : 'درصدی از فروش';
+    const offerList = $('#offer-list');
+    offerList.replaceChildren();
+    payload.offers.forEach(offer => {
+      const item = document.createElement('div');
+      item.className = `offer-row ${offer.eligible ? 'eligible' : 'ineligible'}`;
+      const name = document.createElement('strong');
+      name.textContent = offer.provider_name;
+      const details = document.createElement('span');
+      details.textContent = offer.eligible ? `${formatToman(offer.offered_credit_limit)} · ${offer.repayment_model === 'fixed' ? 'اقساط ثابت' : 'درصدی از فروش'}` : offer.reason;
+      item.append(name, details);
+      offerList.append(item);
+    });
+    $('#offer-results').hidden = false;
     status.style.color = '#3a9d73';
     status.textContent = 'تصمیم با موفقیت صادر شد.';
     setTimeout(closeImportModal, 800);
