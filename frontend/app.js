@@ -14,6 +14,7 @@ const VIEW_TEXT = {
   overview: ['صبح بخیر، مدیر', 'تصویر امروز کسب‌وکارهای تحت پوشش را یک‌جا ببینید.'],
   analysis: ['تحلیل نقدینگی', 'دوره‌های کسری نقدینگی را از روی تراکنش‌های خام مرچنت بررسی کنید.'],
   history: ['تاریخچه تصمیم‌ها', 'تصمیم‌های اعتباری ثبت‌شده برای هر مرچنت را مرور کنید.'],
+  network: ['اکوسیستم Teal', 'یک موتور تصمیم‌گیری، چند مسیر شفاف برای تأمین اعتبار.'],
 };
 const formatDate = value => new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium' }).format(new Date(value));
 const formatDateTime = value => new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -26,6 +27,7 @@ function selectView(view) {
   const [title, subtitle] = VIEW_TEXT[view];
   $('.page-heading h1').textContent = title;
   $('.page-heading .muted').textContent = subtitle;
+  if (view === 'network') loadNetworkOverview();
 }
 
 async function apiRequest(path, { apiKey, body } = {}) {
@@ -59,6 +61,62 @@ async function withSubmitState(form, label, task) {
 }
 
 function addCell(row, text) { const cell = document.createElement('td'); cell.textContent = text; row.append(cell); return cell; }
+
+const DEMO_TRANSACTIONS = [
+  { timestamp: '2026-09-01T10:00:00', amount: 12000000, source: 'pos' },
+  { timestamp: '2026-09-02T10:00:00', amount: 15000000, source: 'marketplace' },
+  { timestamp: '2026-09-03T10:00:00', amount: -4000000, source: 'psp' },
+];
+
+async function loadNetworkOverview() {
+  const list = $('#network-providers');
+  list.replaceChildren();
+  const loading = document.createElement('p');
+  loading.className = 'empty-state';
+  loading.textContent = 'در حال دریافت پیشنهادها…';
+  list.append(loading);
+  try {
+    const result = await apiRequest('/aggregate/offers', { body: { merchant_id: 'merchant-1042', transactions: DEMO_TRANSACTIONS.map(item => ({ ...item, merchant_id: 'merchant-1042' })) } });
+    const { decision, offers } = result;
+    $('#network-risk').textContent = persianDigits(Number(decision.risk_score).toFixed(2));
+    $('#network-limit').textContent = formatToman(decision.recommended_credit_limit);
+    $('#network-repayment').textContent = decision.repayment_model === 'fixed' ? 'اقساط ثابت' : 'درصدی از فروش';
+    $('#network-match-count').textContent = formatNumber(offers.filter(offer => offer.eligible).length);
+    list.replaceChildren();
+    offers.forEach((offer, index) => {
+      const card = document.createElement('div');
+      card.className = `provider-card ${offer.eligible ? 'provider-match' : 'provider-muted'}`;
+      const identity = document.createElement('div');
+      identity.className = 'provider-identity';
+      const rank = document.createElement('span');
+      rank.className = 'provider-rank';
+      rank.textContent = persianDigits(String(index + 1).padStart(2, '0'));
+      const name = document.createElement('strong');
+      name.textContent = offer.provider_name;
+      identity.append(rank, name);
+      const details = document.createElement('div');
+      details.className = 'provider-details';
+      const amount = document.createElement('strong');
+      amount.textContent = offer.eligible ? formatToman(offer.offered_credit_limit) : '—';
+      const reason = document.createElement('span');
+      reason.textContent = offer.eligible ? `تناسب ${persianDigits(Math.round(offer.fit_score * 100))}٪ · ${offer.repayment_model === 'fixed' ? 'اقساط ثابت' : 'درصدی از فروش'}` : offer.reason;
+      details.append(amount, reason);
+      const status = document.createElement('span');
+      status.className = `provider-status ${offer.eligible ? 'match' : 'no-match'}`;
+      status.textContent = offer.eligible ? 'مناسب' : 'نامتناسب';
+      card.append(identity, details, status);
+      list.append(card);
+    });
+  } catch (error) {
+    list.replaceChildren();
+    const message = document.createElement('p');
+    message.className = 'empty-state';
+    message.textContent = error.message;
+    list.append(message);
+  }
+}
+
+$('#refresh-network').addEventListener('click', loadNetworkOverview);
 
 $('#analysis-form').addEventListener('submit', event => {
   event.preventDefault();
@@ -133,18 +191,19 @@ document.addEventListener('keydown', event => { if (event.key === 'Escape') clos
 
 $('#score-form').addEventListener('submit', async event => {
   event.preventDefault();
-  const form = new FormData(event.currentTarget);
-  const status = $('.form-status');
-  const submit = $('button[type="submit"]', event.currentTarget);
+  const form = event.currentTarget;
+  const formData = new FormData(form);
+  const status = $('.form-status', form);
+  const submit = $('button[type="submit"]', form);
   let transactions;
-  try { transactions = JSON.parse(form.get('transactions')); } catch { status.textContent = 'داده تراکنش باید JSON معتبر باشد.'; return; }
+  try { transactions = JSON.parse(formData.get('transactions')); } catch { status.textContent = 'داده تراکنش باید JSON معتبر باشد.'; return; }
   submit.disabled = true;
-  submit.textContent = 'در حال تحلیل…';
+  submit.textContent = 'در حال مقایسه…';
   status.textContent = '';
   try {
     const headers = { 'Content-Type': 'application/json' };
-    if (form.get('api_key')) headers['X-API-Key'] = form.get('api_key');
-    const response = await fetch('/aggregate/offers', { method: 'POST', headers, body: JSON.stringify({ merchant_id: form.get('merchant_id'), transactions: transactions.map(item => ({ ...item, merchant_id: form.get('merchant_id') })) }) });
+    if (formData.get('api_key')) headers['X-API-Key'] = formData.get('api_key');
+    const response = await fetch('/aggregate/offers', { method: 'POST', headers, body: JSON.stringify({ merchant_id: formData.get('merchant_id'), transactions: transactions.map(item => ({ ...item, merchant_id: formData.get('merchant_id') })) }) });
     if (!response.ok) throw new Error((await response.json()).detail || 'صدور تصمیم انجام نشد.');
     const payload = await response.json();
     const decision = payload.decision;
@@ -169,7 +228,7 @@ $('#score-form').addEventListener('submit', async event => {
     status.textContent = 'تصمیم با موفقیت صادر شد.';
     setTimeout(closeImportModal, 800);
   } catch (error) { status.style.color = '#d66355'; status.textContent = error.message; }
-  finally { submit.disabled = false; submit.textContent = 'تحلیل و صدور تصمیم'; }
+  finally { submit.disabled = false; submit.textContent = 'مقایسه پیشنهادهای اعتبار'; }
 });
 
 fetch('/health').then(response => { if (!response.ok) throw new Error(); }).catch(() => { $('.status-dot span').textContent = 'اتصال نیاز به بررسی دارد'; $('.status-dot i').style.background = '#e5ad4c'; });

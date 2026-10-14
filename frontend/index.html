@@ -19,6 +19,7 @@
           <button class="nav-item" data-view="analysis"><span class="nav-icon">⌁</span>تحلیل نقدینگی</button>
           <button class="nav-item" data-view="import"><span class="nav-icon">↥</span>ورود داده</button>
           <button class="nav-item" data-view="history"><span class="nav-icon">◷</span>تاریخچه تصمیم‌ها</button>
+          <button class="nav-item" data-view="network"><span class="nav-icon">◎</span>اکوسیستم Teal</button>
         </nav>
         <div class="sidebar-footer">
           <div class="status-dot"><i></i><span>سرویس فعال است</span></div>
@@ -72,6 +73,24 @@
           </section>
 
           <section class="api-notice"><span class="notice-icon">⌘</span><div><strong>داده‌های شما امن هستند</strong><p>تمام اطلاعات با API داخلی و دسترسی کنترل‌شده پردازش می‌شود.</p></div><button class="text-button" type="button">جزئیات امنیت ←</button></section>
+          </div>
+
+          <div id="view-network" class="view" hidden>
+            <section class="teal-hero">
+              <div><span class="section-kicker">Teal world · aggregation layer</span><h2>یک تصمیم، چند مسیر اعتبار</h2><p>وام‌گر داده‌های پراکنده مرچنت را یک‌بار تحلیل می‌کند و بهترین مسیرهای تأمین اعتبار را کنار هم قابل‌مقایسه می‌سازد.</p></div>
+              <div class="teal-hero-stat"><strong id="network-match-count">—</strong><span>ارائه‌دهنده مناسب</span></div>
+            </section>
+            <section class="aggregation-flow" aria-label="مراحل تجمیع پیشنهادهای اعتبار">
+              <article class="flow-node source-node"><span class="flow-symbol">⌁</span><span class="flow-step">مرحله ۱</span><strong>داده مرچنت</strong><small>POS · PSP · مارکت‌پلیس</small></article>
+              <span class="flow-arrow">←</span>
+              <article class="flow-node engine-node"><span class="flow-symbol">✦</span><span class="flow-step">مرحله ۲</span><strong>موتور وام‌گر</strong><small>ریسک · cash gap · ظرفیت بازپرداخت</small></article>
+              <span class="flow-arrow">←</span>
+              <article class="flow-node network-node"><span class="flow-symbol">◎</span><span class="flow-step">مرحله ۳</span><strong>بازار پیشنهادها</strong><small>رتبه‌بندی و مقایسه providerها</small></article>
+            </section>
+            <section class="network-grid">
+              <article class="panel network-summary"><div class="panel-heading"><div><span class="section-kicker">تصمیم پایه</span><h2>سیگنال مشترک برای همه providerها</h2></div><span class="badge success">یک‌بار محاسبه شد</span></div><div class="signal-grid"><div><span>نمره ریسک</span><strong id="network-risk">—</strong></div><div><span>سقف امن</span><strong id="network-limit">—</strong></div><div><span>بازپرداخت</span><strong id="network-repayment">—</strong></div></div><p class="network-note">هر provider بر اساس همین سیگنال استاندارد، policy و سقف پیشنهادی خودش را اعمال می‌کند.</p></article>
+              <article class="panel provider-panel"><div class="panel-heading"><div><span class="section-kicker">مقایسه زنده</span><h2>مسیرهای اعتبار</h2></div><button class="text-button" id="refresh-network" type="button">به‌روزرسانی ↻</button></div><div id="network-providers" class="provider-cards"><p class="empty-state">در حال دریافت پیشنهادها…</p></div></article>
+            </section>
           </div>
 
           <div id="view-analysis" class="view" hidden>
