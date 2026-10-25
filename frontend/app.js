@@ -19,7 +19,7 @@ const VIEW_TEXT = {
 const formatDate = value => new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium' }).format(new Date(value));
 const formatDateTime = value => new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
 const formatNumber = value => new Intl.NumberFormat('fa-IR').format(value);
-
+const formatPercent = value => persianDigits(`${(value * 100).toFixed(1)}٪`);
 function selectView(view) {
   if (view === 'import') { openImportModal(); return; }
   $$('.nav-item').forEach(item => item.classList.toggle('active', item.dataset.view === view));
@@ -81,6 +81,9 @@ async function loadNetworkOverview() {
     $('#network-risk').textContent = persianDigits(Number(decision.risk_score).toFixed(2));
     $('#network-limit').textContent = formatToman(decision.recommended_credit_limit);
     $('#network-repayment').textContent = decision.repayment_model === 'fixed' ? 'اقساط ثابت' : 'درصدی از فروش';
+    $('#network-explanation').textContent = decision.review_required
+      ? `نیازمند بازبینی انسانی: ${decision.review_reasons.join('، ')}`
+      : `دلایل تصمیم: ${decision.reason_codes.join('، ')}`;
     $('#network-match-count').textContent = formatNumber(offers.filter(offer => offer.eligible).length);
     list.replaceChildren();
     offers.forEach((offer, index) => {
@@ -99,7 +102,9 @@ async function loadNetworkOverview() {
       const amount = document.createElement('strong');
       amount.textContent = offer.eligible ? formatToman(offer.offered_credit_limit) : '—';
       const reason = document.createElement('span');
-      reason.textContent = offer.eligible ? `تناسب ${persianDigits(Math.round(offer.fit_score * 100))}٪ · ${offer.repayment_model === 'fixed' ? 'اقساط ثابت' : 'درصدی از فروش'}` : offer.reason;
+      reason.textContent = offer.eligible
+        ? `تناسب ${persianDigits(Math.round(offer.fit_score * 100))}٪ · ${offer.repayment_model === 'fixed' ? 'اقساط ثابت' : 'درصدی از فروش'} · کارمزد ${formatPercent(offer.estimated_fee_rate)} · پاسخ ${formatNumber(offer.decision_sla_hours)} ساعت`
+        : offer.reason;
       details.append(amount, reason);
       const status = document.createElement('span');
       status.className = `provider-status ${offer.eligible ? 'match' : 'no-match'}`;
@@ -201,11 +206,10 @@ $('#score-form').addEventListener('submit', async event => {
   submit.textContent = 'در حال مقایسه…';
   status.textContent = '';
   try {
-    const headers = { 'Content-Type': 'application/json' };
-    if (formData.get('api_key')) headers['X-API-Key'] = formData.get('api_key');
-    const response = await fetch('/aggregate/offers', { method: 'POST', headers, body: JSON.stringify({ merchant_id: formData.get('merchant_id'), transactions: transactions.map(item => ({ ...item, merchant_id: formData.get('merchant_id') })) }) });
-    if (!response.ok) throw new Error((await response.json()).detail || 'صدور تصمیم انجام نشد.');
-    const payload = await response.json();
+    const payload = await apiRequest('/aggregate/offers', {
+      apiKey: formData.get('api_key'),
+      body: { merchant_id: formData.get('merchant_id'), consent: { granted: formData.get('consent') === 'on', purpose: 'credit_assessment', source: 'dashboard' }, transactions: transactions.map(item => ({ ...item, merchant_id: formData.get('merchant_id') })) },
+    });
     const decision = payload.decision;
     $('#merchant-id').textContent = decision.merchant_id;
     $('#risk-score').textContent = persianDigits(Number(decision.risk_score).toFixed(2));
@@ -219,7 +223,9 @@ $('#score-form').addEventListener('submit', async event => {
       const name = document.createElement('strong');
       name.textContent = offer.provider_name;
       const details = document.createElement('span');
-      details.textContent = offer.eligible ? `${formatToman(offer.offered_credit_limit)} · ${offer.repayment_model === 'fixed' ? 'اقساط ثابت' : 'درصدی از فروش'}` : offer.reason;
+      details.textContent = offer.eligible
+        ? `${formatToman(offer.offered_credit_limit)} · ${offer.repayment_model === 'fixed' ? 'اقساط ثابت' : 'درصدی از فروش'} · کارمزد ${formatPercent(offer.estimated_fee_rate)} · پاسخ ${formatNumber(offer.decision_sla_hours)} ساعت`
+        : offer.reason;
       item.append(name, details);
       offerList.append(item);
     });

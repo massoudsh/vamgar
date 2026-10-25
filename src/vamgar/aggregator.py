@@ -14,15 +14,19 @@ class ProviderProfile:
     max_risk_score: float
     credit_multiplier: float
     repayment_models: tuple[str, ...]
+    policy_version: str
+    estimated_fee_rate: float
+    decision_sla_hours: int
+    data_requirements: tuple[str, ...]
 
 
 PROVIDER_PROFILES = (
-    ProviderProfile("digipay", "دیجی‌پی", 0.65, 0.8, ("fixed", "revenue_share")),
-    ProviderProfile("azki-vam", "ازکی‌وام", 0.55, 0.7, ("fixed",)),
-    ProviderProfile("snapp-pay", "اسنپ‌پی", 0.7, 0.75, ("fixed", "revenue_share")),
-    ProviderProfile("basalam-credit", "اعتبار فروشندگان باسلام", 0.6, 0.65, ("revenue_share",)),
-    ProviderProfile("lendme", "لندمی", 0.5, 0.6, ("fixed",)),
-    ProviderProfile("other-lendtech", "سایر ارائه‌دهندگان لندتک", 0.75, 0.5, ("fixed", "revenue_share")),
+    ProviderProfile("digipay", "دیجی‌پی", 0.65, 0.8, ("fixed", "revenue_share"), "2026.1", 0.04, 24, ("تراکنش POS", "شناسه مرچنت")),
+    ProviderProfile("azki-vam", "ازکی‌وام", 0.55, 0.7, ("fixed",), "2026.1", 0.05, 48, ("تراکنش POS", "سابقه تصمیم")),
+    ProviderProfile("snapp-pay", "اسنپ‌پی", 0.7, 0.75, ("fixed", "revenue_share"), "2026.1", 0.035, 24, ("تراکنش فروش", "شناسه مرچنت")),
+    ProviderProfile("basalam-credit", "اعتبار فروشندگان باسلام", 0.6, 0.65, ("revenue_share",), "2026.1", 0.03, 12, ("سابقه سفارش", "تراکنش تسویه")),
+    ProviderProfile("lendme", "لندمی", 0.5, 0.6, ("fixed",), "2026.1", 0.06, 72, ("تراکنش بانکی", "احراز هویت")),
+    ProviderProfile("other-lendtech", "سایر ارائه‌دهندگان لندتک", 0.75, 0.5, ("fixed", "revenue_share"), "2026.1", 0.07, 72, ("داده تراکنش",)),
 )
 
 
@@ -54,6 +58,10 @@ def aggregate_offers(merchant_id: str, transactions: list[Transaction]) -> tuple
                 ),
                 repayment_model=decision.repayment_model if eligible else None,
                 fit_score=round(max(0, 1 - decision.risk_score) * (profile.credit_multiplier if eligible else 0), 4),
+                policy_version=profile.policy_version,
+                estimated_fee_rate=profile.estimated_fee_rate,
+                decision_sla_hours=profile.decision_sla_hours,
+                data_requirements=list(profile.data_requirements),
                 reason=_reason(profile, decision),
             )
         )

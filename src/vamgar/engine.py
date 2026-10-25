@@ -61,12 +61,31 @@ def score_merchant(
     repayment_model = (
         "revenue_share" if (summary.revenue_volatility > 0.4 or frequent_gaps) else "fixed"
     )
+    reason_codes = []
+    if summary.revenue_volatility <= 0.4:
+        reason_codes.append("stable_revenue")
+    else:
+        reason_codes.append("volatile_revenue")
+    if has_gaps:
+        reason_codes.append("cash_gap_detected")
+        if frequent_gaps:
+            reason_codes.append("frequent_cash_gaps")
+    else:
+        reason_codes.append("no_cash_gap_detected")
+    review_reasons = []
+    if risk_score >= 0.6:
+        review_reasons.append("risk_above_manual_review_threshold")
+    if not has_gaps and summary.months_of_history < 3:
+        review_reasons.append("limited_history")
 
     return CreditDecision(
         merchant_id=summary.merchant_id,
         risk_score=risk_score,
         recommended_credit_limit=round(recommended_credit_limit, 2),
         repayment_model=repayment_model,
+        reason_codes=reason_codes,
+        review_required=bool(review_reasons),
+        review_reasons=review_reasons,
     )
 
 

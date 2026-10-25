@@ -62,6 +62,7 @@ def score_from_transactions(batch: MerchantTransactionBatch) -> CreditDecision:
             "merchant_id": batch.merchant_id,
             "transaction_count": len(batch.transactions),
             "amount_sum": round(sum(tx.amount for tx in batch.transactions), 2),
+            "consent": batch.consent.model_dump(mode="json") if batch.consent else None,
         },
     )
     return decision
@@ -79,6 +80,7 @@ def aggregate_credit_offers(batch: MerchantTransactionBatch) -> AggregatedCredit
             "merchant_id": batch.merchant_id,
             "transaction_count": len(batch.transactions),
             "amount_sum": round(sum(tx.amount for tx in batch.transactions), 2),
+            "consent": batch.consent.model_dump(mode="json") if batch.consent else None,
         },
     )
     return AggregatedCreditResponse(decision=decision, offers=offers)

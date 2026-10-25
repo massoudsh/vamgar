@@ -152,3 +152,5 @@ def test_aggregate_offers_returns_ranked_provider_matches():
         )
     ]
     assert any(offer["eligible"] for offer in body["offers"])
+    assert all("policy_version" in offer and "estimated_fee_rate" in offer for offer in body["offers"])
+    assert "reason_codes" in body["decision"]

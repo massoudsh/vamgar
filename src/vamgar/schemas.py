@@ -27,11 +27,21 @@ class Transaction(BaseModel):
     source: TransactionSource
 
 
+class DataConsent(BaseModel):
+    """ثبت حداقلی رضایت و هدف استفاده از داده تراکنش."""
+
+    granted: bool = False
+    purpose: str = "credit_assessment"
+    captured_at: datetime | None = None
+    source: str | None = None
+
+
 class MerchantTransactionBatch(BaseModel):
     """دسته‌ای از تراکنش‌های خام یک مرچنت برای تحلیل."""
 
     merchant_id: str
     transactions: list[Transaction] = Field(..., min_length=1)
+    consent: DataConsent | None = None
 
 
 class CSVImportRequest(BaseModel):
@@ -87,6 +97,9 @@ class CreditDecision(BaseModel):
     risk_score: float = Field(..., ge=0, le=1, description="نمره ریسک؛ کمتر یعنی ریسک پایین‌تر")
     recommended_credit_limit: float = Field(..., ge=0, description="سقف اعتبار پیشنهادی (تومان)")
     repayment_model: str = Field(..., description="'fixed' یا 'revenue_share'")
+    reason_codes: list[str] = Field(default_factory=list)
+    review_required: bool = False
+    review_reasons: list[str] = Field(default_factory=list)
 
 
 class ProviderOffer(BaseModel):
@@ -98,6 +111,10 @@ class ProviderOffer(BaseModel):
     offered_credit_limit: float = Field(..., ge=0)
     repayment_model: str | None = None
     fit_score: float = Field(..., ge=0, le=1)
+    policy_version: str
+    estimated_fee_rate: float = Field(..., ge=0, le=1)
+    decision_sla_hours: int = Field(..., ge=1)
+    data_requirements: list[str] = Field(default_factory=list)
     reason: str
 
 
